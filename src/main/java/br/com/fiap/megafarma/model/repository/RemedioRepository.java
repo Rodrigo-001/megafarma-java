@@ -1,28 +1,39 @@
 package br.com.fiap.megafarma.model.repository;
 
-import java.time.LocalDate;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.ArrayList;
+
 
 import br.com.fiap.megafarma.model.entity.Remedio;
 
-public class RemedioRepository {
+public class RemedioRepository extends Repository {
 
 	public static ArrayList<Remedio> findAll(){
 		ArrayList<Remedio> remedios = new ArrayList<Remedio>();
-		
-		Remedio remedio1 = new Remedio();
-		remedio1.setId(1L);
-		remedio1.setNome("Loratadina");
-		remedio1.setPreco(7.93);
-		remedio1.setDataDeFabricacao(LocalDate.now());
-		remedio1.setDataDeValidade(LocalDate.now().plusYears(2)); 
-		
-		remedios.add(remedio1);
-		
-		Remedio remedio2 = new Remedio(2L, "Amoxicilina", 26.36, LocalDate.now(), LocalDate.now().plusYears(1));
-		
-		remedios.add(remedio2);
-		
+		String sql = "select * from tb_remedios";
+		try {
+			PreparedStatement ps = getConnection().prepareStatement(sql);
+			ResultSet rs = ps.executeQuery();
+			if (rs != null) {
+				while(rs.next()) {
+					Remedio remedio = new Remedio();
+					remedio.setId(rs.getLong("id"));
+					remedio.setNome(rs.getString("nome"));
+					remedio.setPreco(rs.getDouble("preco"));
+					remedio.setDataDeFabricacao(rs.getDate("data_de_fabricacao").toLocalDate());
+					remedio.setDataDeValidade(rs.getDate("data_de_validade").toLocalDate());
+					remedios.add(remedio);
+				}
+			} else {
+				return null;
+			}
+		} catch (SQLException e) {
+			System.out.println("Erro ao listar: "+e.getMessage());
+		}finally {
+			closeConnection();
+		}
 		return remedios;
 	}
 }
